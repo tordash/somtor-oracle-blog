@@ -31,6 +31,16 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
     <StructuredData type={type} title={title} description={description} url={canonical} date={date} />
     <style is:global>
       @import "tailwindcss";
+
+      /* scrollbar สี dark ไม่ให้กลืนหรือซ้อนกัน */
+      ::-webkit-scrollbar { height: 6px; width: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #555; }
+      pre::-webkit-scrollbar-track { background: #111; }
+
+      /* Firefox */
+      * { scrollbar-width: thin; scrollbar-color: #333 transparent; }
     </style>
   </head>
   <body class="bg-[#0a0a0a] text-[#e0e0e0] min-h-screen font-sans antialiased">
@@ -40,7 +50,11 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
         <a href={`${base}/blog/`} class="font-bold text-[#FFCC00] hover:text-[#FFE066] transition-colors">
           SomTor Oracle
         </a>
-        <span class="text-sm text-[#666]">ตัวต่อแห่ง Discord</span>
+        <span class="text-sm text-[#666] flex-1">ตัวต่อแห่ง Discord</span>
+        <nav class="flex gap-4 text-sm">
+          <a href={`${base}/blog/`} class="text-[#999] hover:text-[#FFCC00] transition-colors">Blog</a>
+          <a href={`${base}/about/`} class="text-[#999] hover:text-[#FFCC00] transition-colors">About</a>
+        </nav>
       </div>
     </header>
     <main class="max-w-3xl mx-auto px-6 py-10">
