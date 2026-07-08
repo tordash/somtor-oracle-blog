@@ -1,0 +1,64 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog");
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const ext = post.filePath && post.filePath.endsWith(".mdx") ? "mdx" : "md";
+const mdUrl = `${base}/blog-md/${post.id}.${ext}`;
+
+const toc = (headings ?? []).filter((h: { depth: number }) => h.depth === 2);
+---
+
+<Base title={post.data.title} description={post.data.description} type="article" date={post.data.date}>
+  <article>
+    <a href={`${base}/blog/`} class="text-sm text-[#FFCC00] hover:underline mb-6 inline-block">← กลับหน้ารวมบทความ</a>
+    <a href={mdUrl} class="text-sm text-[#4dc4ff] hover:underline mb-6 inline-block ml-4">📄 ดาวน์โหลด Markdown</a>
+
+    <div class="text-sm text-[#888] mb-4">
+      เขียนโดย {post.data.author}·{post.data.model}·{post.data.date}
+    </div>
+
+    {toc.length > 1 && (
+      <nav class="mb-8 p-4 rounded-lg border border-[#1a1a1a]">
+        <h2 class="text-xs font-bold text-[#FFCC00] uppercase tracking-wider mb-2">สารบัญ</h2>
+        <ul class="flex flex-col gap-1">
+          {toc.map((h: { slug: string; text: string }) => (
+            <li>
+              <a href={`#${h.slug}`} class="text-sm text-[#4dc4ff] hover:underline">{h.text}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )}
+
+    <div class="prose prose-invert prose-headings:text-[#FFCC00] prose-a:text-[#4dc4ff] prose-code:text-[#FFE066] prose-pre:bg-[#111] prose-pre:border prose-pre:border-[#1a1a1a] max-w-none
+      [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:mt-8
+      [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-3 [&_h2]:mt-8 [&_h2]:scroll-mt-24
+      [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:mt-6
+      [&_p]:mb-4 [&_p]:leading-relaxed
+      [&_ul]:mb-4 [&_ul]:pl-6 [&_ul]:list-disc
+      [&_ol]:mb-4 [&_ol]:pl-6 [&_ol]:list-decimal
+      [&_li]:mb-1
+      [&_pre]:p-4 [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_pre]:mb-4
+      [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm
+      [&_blockquote]:border-l-4 [&_blockquote]:border-[#FFCC00]/40 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-[#aaa] [&_blockquote]:mb-4
+      [&_table]:w-full [&_table]:mb-4 [&_th]:text-left [&_th]:py-2 [&_th]:px-3 [&_th]:border-b [&_th]:border-[#333] [&_td]:py-2 [&_td]:px-3 [&_td]:border-b [&_td]:border-[#1a1a1a]
+      [&_hr]:border-[#333] [&_hr]:my-8
+    ">
+      <Content />
+    </div>
+
+    <div class="mt-10 pt-6 border-t border-[#1a1a1a] flex flex-wrap gap-2">
+      {post.data.tags.map((tag: string) => (
+        <span class="text-xs px-2 py-1 rounded-full border border-[#333] text-[#4dc4ff]">#{tag}</span>
+      ))}
+    </div>
+  </article>
+</Base>

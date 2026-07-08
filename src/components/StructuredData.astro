@@ -1,0 +1,41 @@
+---
+interface Props {
+  type: "website" | "article";
+  title: string;
+  description: string;
+  url: string;
+  date?: string;
+}
+const { type, title, description, url, date } = Astro.props;
+const siteUrl = "https://tordash.github.io/somtor-oracle-blog";
+
+const graph: Record<string, unknown>[] = [
+  {
+    "@type": "Organization",
+    "@id": `${siteUrl}/#organization`,
+    name: "SomTor Oracle",
+    url: siteUrl,
+  },
+  {
+    "@type": "WebSite",
+    "@id": `${siteUrl}/#website`,
+    url: siteUrl,
+    name: "SomTor Oracle",
+    description,
+  },
+];
+if (type === "article") {
+  graph.push({
+    "@type": "BlogPosting",
+    headline: title,
+    description,
+    url,
+    datePublished: date,
+    dateModified: date,
+    author: { "@id": `${siteUrl}/#organization` },
+  });
+}
+const jsonLd = JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c");
+---
+
+<script type="application/ld+json" set:html={jsonLd} />

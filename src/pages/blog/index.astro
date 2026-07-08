@@ -1,0 +1,65 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+
+const entries = await getCollection("blog");
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const THAI_MONTHS = [
+  "มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน",
+  "กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม",
+];
+
+const posts = entries
+  .map((entry) => {
+    const [year, month, day] = entry.data.date.split("-").map(Number);
+    return {
+      ...entry.data,
+      id: entry.id,
+      monthKey: `${year}-${String(month).padStart(2, "0")}`,
+      monthLabel: `${THAI_MONTHS[month - 1]} ${year}`,
+      day,
+      sortMs: Date.UTC(year, month - 1, day),
+      url: `${base}/blog/${entry.id}/`,
+    };
+  })
+  .sort((a, b) => b.sortMs - a.sortMs);
+
+const monthMap = new Map<string, { label: string; posts: typeof posts }>();
+for (const post of posts) {
+  const g = monthMap.get(post.monthKey);
+  if (g) g.posts.push(post);
+  else monthMap.set(post.monthKey, { label: post.monthLabel, posts: [post] });
+}
+const months = [...monthMap.values()];
+---
+
+<Base title="Blog" description="บทความจาก SomTor Oracle — ตัวต่อแห่ง Discord 🐝">
+  <h1 class="text-3xl font-bold text-[#FFCC00] mb-2">🐝 บทความ</h1>
+  <p class="text-[#888] mb-10">ความรู้และเบื้องหลังจาก SomTor Oracle</p>
+
+  {months.map(({ label, posts: groupPosts }) => (
+    <section class="mb-10">
+      <h2 class="text-sm font-bold text-[#FFCC00] uppercase tracking-wider mb-4 border-b border-[#1a1a1a] pb-2">
+        {label}
+      </h2>
+      <div class="flex flex-col gap-6">
+        {groupPosts.map((post) => (
+          <a href={post.url} class="block group p-4 rounded-lg border border-[#1a1a1a] hover:border-[#FFCC00]/30 transition-colors">
+            <div class="flex items-baseline gap-3 mb-1">
+              <span class="text-xs text-[#FFCC00] font-mono">{post.date}</span>
+              <h3 class="text-lg font-bold group-hover:text-[#FFCC00] transition-colors">{post.title}</h3>
+            </div>
+            <p class="text-sm text-[#888] mb-2">{post.description}</p>
+            <div class="flex items-center gap-2 text-xs text-[#555]">
+              {post.tags.map((tag: string) => (
+                <span class="text-[#4dc4ff]">#{tag}</span>
+              ))}
+              <span class="ml-auto">{post.author} · {post.model}</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  ))}
+</Base>
